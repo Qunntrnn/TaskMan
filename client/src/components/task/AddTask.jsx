@@ -7,55 +7,55 @@ import UserList from "./UserList";
 import SelectList from "../SelectList";
 import { BiImages } from "react-icons/bi";
 import Button from "../Button";
-import {getStorage, ref, getDownloadURL, uploadBytesResumable} from "firebase/storage";
-import {app} from "../../utils/firebase"
+import { getStorage, ref, getDownloadURL, uploadBytesResumable } from "firebase/storage";
+import { app } from "../../utils/firebase";
 import { useCreatTaskMutation, useUpdateTaskMutation } from "../../redux/slices/api/taskApiSlice";
 import { toast } from "sonner";
 import { dateFormatter } from "../../utils";
 
 const LISTS = ["TODO", "IN PROGRESS", "COMPLETED"];
-const PRIORIRY = ["HIGH", "MEDIUM", "NORMAL", "LOW"];
+const PRIORITY = ["HIGH", "MEDIUM", "NORMAL", "LOW"];
 
 const uploadedFileURLs = [];
 
 const AddTask = ({ open, setOpen, task }) => {
-
   const defaultValues = {
-    title : task?.title || "",
-    date : dateFormatter(task?.date || new Date()),
-    team: [],
-    stage:"",
-    priority:"",
-    assets:[],
-  }
+    title: task?.title || "",
+    date: dateFormatter(task?.date || new Date()),
+    dueDate: dateFormatter(task?.dueDate || ""), // Đặt giá trị mặc định cho dueDate
+    team: task?.team || [],
+    stage: task?.stage?.toUpperCase() || LISTS[0],
+    priority: task?.priority?.toUpperCase() || PRIORITY[2],
+    assets: task?.assets ? [...task.assets] : [],
+  };
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({defaultValues});
+  } = useForm({ defaultValues });
+
   const [team, setTeam] = useState(task?.team || []);
   const [stage, setStage] = useState(task?.stage?.toUpperCase() || LISTS[0]);
   const [priority, setPriority] = useState(
-    task?.priority?.toUpperCase() || PRIORIRY[2]
+    task?.priority?.toUpperCase() || PRIORITY[2]
   );
   const [assets, setAssets] = useState([]);
   const [uploading, setUploading] = useState(false);
 
-  const[createTask, {isLoading}] = useCreatTaskMutation();
-  const[updateTask, {isLoading :isUpdating}] = useUpdateTaskMutation();
-  const URLS = task?.assets? [...task.assets]:[];
+  const [createTask, { isLoading }] = useCreatTaskMutation();
+  const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
+  const URLS = task?.assets ? [...task.assets] : [];
 
-  const submitHandler = async(data) => {
+  const submitHandler = async (data) => {
     for (const file of assets) {
       setUploading(true);
       try {
         await upLoadFile(file);
       } catch (error) {
-        console.error("Error uploading file:",error.message);
+        console.error("Error uploading file:", error.message);
         return;
-        
-      }finally{
+      } finally {
         setUploading(false);
       }
     }
@@ -63,24 +63,24 @@ const AddTask = ({ open, setOpen, task }) => {
     try {
       const newData = {
         ...data,
-        assets:[...URLS,...uploadedFileURLs],
+        assets: [...URLS, ...uploadedFileURLs],
         team,
         stage,
         priority,
       };
       const res = task?._id
-      ? await updateTask({...newData, _id:task._id}).unwrap()
-      : await createTask(newData).unwrap();
+        ? await updateTask({ ...newData, _id: task._id }).unwrap()
+        : await createTask(newData).unwrap();
 
       toast.success(res.message);
 
       setTimeout(() => {
         setOpen(false);
-      },500)
+      }, 500);
+      window.location.reload();
     } catch (err) {
       console.log(err);
       toast.error(err?.data.message || err.error);
-      
     }
   };
 
@@ -90,24 +90,22 @@ const AddTask = ({ open, setOpen, task }) => {
 
   const upLoadFile = async (file) => {
     const storage = getStorage(app);
-
     const name = new Date().getTime() + file.name;
     const storageRef = ref(storage, name);
+    const upLoadTask = uploadBytesResumable(storageRef, file);
 
-    const upLoadTask = uploadBytesResumable(storageRef,file);
-
-    return new Promise((resolve, reject) =>{
+    return new Promise((resolve, reject) => {
       upLoadTask.on(
         "state_changed",
         (snapshot) => {
-          console.log("updating")
+          console.log("updating");
         },
         (error) => {
           reject(error);
         },
         () => {
           getDownloadURL(upLoadTask.snapshot.ref)
-            .then((downloadURL)=> {
+            .then((downloadURL) => {
               uploadedFileURLs.push(downloadURL);
               resolve();
             })
@@ -117,7 +115,7 @@ const AddTask = ({ open, setOpen, task }) => {
         }
       );
     });
-  }
+  };
 
   return (
     <>
@@ -166,10 +164,33 @@ const AddTask = ({ open, setOpen, task }) => {
               </div>
             </div>
 
+            {/* Thêm trường Due Date vào đây */}
+            <div className='flex gap-4'>
+              <div className='w-full'>
+                <Textbox
+                  placeholder='Due Date'
+                  type='date'
+                  name='dueDate'
+                  label='Due Date'
+                  className='w-full rounded'
+                  register={register("dueDate", {
+                    required: "Due Date is required!",
+                    validate: (value) => {
+                      if (new Date(value) < new Date()) {
+                        return "Due Date cannot be in the past!";
+                      }
+                      return true;
+                    },
+                  })}
+                  error={errors.dueDate ? errors.dueDate.message : ""}
+                />
+              </div>
+            </div>
+
             <div className='flex gap-4'>
               <SelectList
                 label='Priority Level'
-                lists={PRIORIRY}
+                lists={PRIORITY}
                 selected={priority}
                 setSelected={setPriority}
               />

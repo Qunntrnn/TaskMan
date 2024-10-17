@@ -6,7 +6,7 @@ export const createTask = async (req, res) => {
   try {
     const { userId } = req.user;
 
-    const { title, team, stage, date, priority, assets } = req.body;
+    const { title, team, stage, date, dueDate, priority, assets } = req.body;
 
     let text = "New task has been assigned to you";
     if (team?.length > 1) {
@@ -30,9 +30,10 @@ export const createTask = async (req, res) => {
       team,
       stage: stage.toLowerCase(),
       date,
+      dueDate,
       priority: priority.toLowerCase(),
       assets,
-      activities: activity,
+      activities: [activity],
     });
 
     await Notice.create({
@@ -286,6 +287,7 @@ export const updateTask = async (req, res) => {
 
     task.title = title;
     task.date = date;
+    task.dueDate = dueDate ;
     task.priority = priority.toLowerCase();
     task.assets = assets;
     task.stage = stage.toLowerCase();

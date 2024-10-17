@@ -44,6 +44,7 @@ const AddUser = ({ open, setOpen, userData }) => {
       setTimeout(() => {
         setOpen(false)
       }, 1500);
+      window.location.reload();
     } catch (error) {
       toast.error("Something went wrong")
     }

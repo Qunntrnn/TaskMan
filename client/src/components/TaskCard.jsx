@@ -52,6 +52,10 @@ const TaskCard = ({ task }) => {
           <span className='text-sm text-gray-600'>
             {formatDate(new Date(task?.date))}
           </span>
+          <span className='text-sm text-gray-600 flex flex-col'>
+            {formatDate(new Date(task?.dueDate))}
+          </span>
+          
         </>
 
         <div className='w-full border-t border-gray-200 my-2' />
