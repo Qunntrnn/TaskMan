@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-// import { user } from "../../assets/data";
 
 const initialState = {
   user: localStorage.getItem("userInfo")
@@ -7,6 +6,7 @@ const initialState = {
     : null,
 
   isSidebarOpen: false,
+  searchQuery: "", // Thêm trạng thái tìm kiếm
 };
 
 const authSlice = createSlice({
@@ -17,16 +17,20 @@ const authSlice = createSlice({
       state.user = action.payload;
       localStorage.setItem("userInfo", JSON.stringify(action.payload));
     },
-    logout: (state, action) => {
+    logout: (state) => {
       state.user = null;
       localStorage.removeItem("userInfo");
     },
     setOpenSidebar: (state, action) => {
       state.isSidebarOpen = action.payload;
     },
+    setSearchQuery: (state, action) => {
+      state.searchQuery = action.payload; // Cập nhật trạng thái tìm kiếm
+    },
   },
 });
 
-export const { setCredentials, logout, setOpenSidebar } = authSlice.actions;
+export const { setCredentials, logout, setOpenSidebar, setSearchQuery } =
+  authSlice.actions;
 
 export default authSlice.reducer;

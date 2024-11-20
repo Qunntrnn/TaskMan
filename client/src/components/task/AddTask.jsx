@@ -22,7 +22,7 @@ const AddTask = ({ open, setOpen, task }) => {
   const defaultValues = {
     title: task?.title || "",
     date: dateFormatter(task?.date || new Date()),
-    dueDate: dateFormatter(task?.dueDate || ""), // Đặt giá trị mặc định cho dueDate
+    dueDate: task?.dueDate ? dateFormatter(task.dueDate) : null,
     team: task?.team || [],
     stage: task?.stage?.toUpperCase() || LISTS[0],
     priority: task?.priority?.toUpperCase() || PRIORITY[2],
@@ -48,6 +48,7 @@ const AddTask = ({ open, setOpen, task }) => {
   const URLS = task?.assets ? [...task.assets] : [];
 
   const submitHandler = async (data) => {
+    console.log(data)
     for (const file of assets) {
       setUploading(true);
       try {
@@ -164,7 +165,6 @@ const AddTask = ({ open, setOpen, task }) => {
               </div>
             </div>
 
-            {/* Thêm trường Due Date vào đây */}
             <div className='flex gap-4'>
               <div className='w-full'>
                 <Textbox

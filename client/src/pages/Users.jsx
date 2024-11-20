@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Title from "../components/Title";
 import Button from "../components/Button";
 import { IoMdAdd } from "react-icons/io";
-import { summary } from "../assets/data";
 import { getInitials } from "../utils";
 import clsx from "clsx";
 import ConfirmatioDialog, { UserAction } from "../components/Dialogs";
@@ -15,41 +14,43 @@ const Users = () => {
   const [open, setOpen] = useState(false);
   const [openAction, setOpenAction] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [searchQuery, setSearchQuery] = useState(""); // Thêm state để lưu giá trị tìm kiếm
 
-  const {data, isLoading, refetch} = useGetTeamListQuery();
-  const [deleteUser] = useDeleteUserMutation()
-  const [userAction] = useUserActionMutation()
-  const userActionHandler = async() => {
+  const { data, isLoading, refetch } = useGetTeamListQuery();
+  const [deleteUser] = useDeleteUserMutation();
+  const [userAction] = useUserActionMutation();
+
+  const userActionHandler = async () => {
     try {
       const result = await userAction({
-        isActive : !selected?.isActive,
+        isActive: !selected?.isActive,
         id: selected?._id,
-      })
+      });
       refetch();
 
       toast.success(result.data.message);
       setSelected(null);
       setTimeout(() => {
         setOpenAction(false);
-      },500);
+      }, 500);
     } catch (error) {
-      console.log(err);
-      toast.error(err?.data?.message || err.error  );
+      console.log(error);
+      toast.error(error?.data?.message || error.error);
     }
   };
-  const deleteHandler = async() => {
-    try {
-      const result = await deleteUser(selected)
 
+  const deleteHandler = async () => {
+    try {
+      const result = await deleteUser(selected);
       refetch();
       toast.success("Deleted successfully");
       setSelected(null);
       setTimeout(() => {
         setOpenDialog(false);
-      },500);
+      }, 500);
     } catch (error) {
-      console.log(err);
-      toast.error(err?.data?.message || err.error  );  
+      console.log(error);
+      toast.error(error?.data?.message || error.error);
     }
   };
 
@@ -66,35 +67,39 @@ const Users = () => {
   const userStatusClick = (el) => {
     setSelected(el);
     setOpenAction(true);
-  }
+  };
+
+  // Hàm lọc danh sách người dùng theo tên
+  const filteredUsers = data?.filter((user) =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const TableHeader = () => (
-    <thead className='border-b border-gray-300'>
-      <tr className='text-black text-left'>
-        <th className='py-2'>Full Name</th>
-        <th className='py-2'>Title</th>
-        <th className='py-2'>Email</th>
-        <th className='py-2'>Role</th>
-        <th className='py-2'>Active</th>
+    <thead className="border-b border-gray-300">
+      <tr className="text-black text-left">
+        <th className="py-2">Full Name</th>
+        <th className="py-2">Title</th>
+        <th className="py-2">Email</th>
+        <th className="py-2">Role</th>
+        <th className="py-2">Active</th>
       </tr>
     </thead>
   );
 
   const TableRow = ({ user }) => (
-    <tr className='border-b border-gray-200 text-gray-600 hover:bg-gray-400/10'>
-      <td className='p-2'>
-        <div className='flex items-center gap-3'>
-          <div className='w-9 h-9 rounded-full text-white flex items-center justify-center text-sm bg-blue-700'>
-            <span className='text-xs md:text-sm text-center'>
-              {getInitials(user.name)}
-            </span>
+    <tr className="border-b border-gray-200 text-gray-600 hover:bg-gray-400/10">
+      <td className="p-2">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full text-white flex items-center justify-center text-sm bg-blue-700">
+            <span className="text-xs md:text-sm text-center">{getInitials(user.name)}</span>
           </div>
           {user.name}
         </div>
       </td>
 
-      <td className='p-2'>{user.title}</td>
-      <td className='p-2'>{user.email || "user.emal.com"}</td>
-      <td className='p-2'>{user.role}</td>
+      <td className="p-2">{user.title}</td>
+      <td className="p-2">{user.email || "user.email.com"}</td>
+      <td className="p-2">{user.role}</td>
 
       <td>
         <button
@@ -108,18 +113,18 @@ const Users = () => {
         </button>
       </td>
 
-      <td className='p-2 flex gap-4 justify-end'>
+      <td className="p-2 flex gap-4 justify-end">
         <Button
-          className='text-blue-600 hover:text-blue-500 font-semibold sm:px-0'
-          label='Edit'
-          type='button'
+          className="text-blue-600 hover:text-blue-500 font-semibold sm:px-0"
+          label="Edit"
+          type="button"
           onClick={() => editClick(user)}
         />
 
         <Button
-          className='text-red-700 hover:text-red-500 font-semibold sm:px-0'
-          label='Delete'
-          type='button'
+          className="text-red-700 hover:text-red-500 font-semibold sm:px-0"
+          label="Delete"
+          type="button"
           onClick={() => deleteClick(user?._id)}
         />
       </td>
@@ -128,25 +133,44 @@ const Users = () => {
 
   return (
     <>
-      <div className='w-full md:px-1 px-0 mb-6'>
-        <div className='flex items-center justify-between mb-8'>
-          <Title title='  Team Members' />
+      <div className="w-full md:px-1 px-0 mb-6">
+        <div className="flex items-center justify-between mb-8">
+          <Title title="Team Members" />
           <Button
-            label='Add New User'
-            icon={<IoMdAdd className='text-lg' />}
-            className='flex flex-row-reverse gap-1 items-center bg-blue-600 text-white rounded-md 2xl:py-2.5'
+            label="Add New User"
+            icon={<IoMdAdd className="text-lg" />}
+            className="flex flex-row-reverse gap-1 items-center bg-blue-600 text-white rounded-md 2xl:py-2.5"
             onClick={() => setOpen(true)}
           />
         </div>
 
-        <div className='bg-white px-2 md:px-4 py-4 shadow-md rounded'>
-          <div className='overflow-x-auto'>
-            <table className='w-full mb-5'>
+        {/* Thêm ô tìm kiếm */}
+        <div className="mb-4">
+          <input
+            type="text"
+            className="w-full p-2 border rounded"
+            placeholder="Search by name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)} // Cập nhật search query
+          />
+        </div>
+
+        <div className="bg-white px-2 md:px-4 py-4 shadow-md rounded">
+          <div className="overflow-x-auto">
+            <table className="w-full mb-5">
               <TableHeader />
               <tbody>
-                {data?.map((user, index) => (
-                  <TableRow key={index} user={user} />
-                ))}
+                {filteredUsers?.length > 0 ? (
+                  filteredUsers?.map((user, index) => (
+                    <TableRow key={index} user={user} />
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="text-center py-4 text-gray-500">
+                      No users found
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -160,17 +184,9 @@ const Users = () => {
         key={new Date().getTime().toString()}
       />
 
-      <ConfirmatioDialog
-        open={openDialog}
-        setOpen={setOpenDialog}
-        onClick={deleteHandler}
-      />
+      <ConfirmatioDialog open={openDialog} setOpen={setOpenDialog} onClick={deleteHandler} />
 
-      <UserAction
-        open={openAction}
-        setOpen={setOpenAction}
-        onClick={userActionHandler}
-      />
+      <UserAction open={openAction} setOpen={setOpenAction} onClick={userActionHandler} />
     </>
   );
 };

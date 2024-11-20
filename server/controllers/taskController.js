@@ -66,6 +66,7 @@ export const duplicateTask = async (req, res) => {
     newTask.subTasks = task.subTasks;
     newTask.assets = task.assets;
     newTask.priority = task.priority;
+    newTask.dueDate = task.dueDate;
     newTask.stage = task.stage;
 
     await newTask.save();
@@ -281,7 +282,7 @@ export const createSubTask = async (req, res) => {
 export const updateTask = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, date, team, stage, priority, assets } = req.body;
+    const { title, date,dueDate, team, stage, priority, assets } = req.body;
 
     const task = await Task.findById(id);
 
