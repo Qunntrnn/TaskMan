@@ -14,7 +14,7 @@ const Users = () => {
   const [open, setOpen] = useState(false);
   const [openAction, setOpenAction] = useState(false);
   const [selected, setSelected] = useState(null);
-  const [searchQuery, setSearchQuery] = useState(""); // Thêm state để lưu giá trị tìm kiếm
+  const [searchQuery, setSearchQuery] = useState(""); 
 
   const { data, isLoading, refetch } = useGetTeamListQuery();
   const [deleteUser] = useDeleteUserMutation();

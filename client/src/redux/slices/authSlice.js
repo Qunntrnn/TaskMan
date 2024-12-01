@@ -6,7 +6,7 @@ const initialState = {
     : null,
 
   isSidebarOpen: false,
-  searchQuery: "", // Thêm trạng thái tìm kiếm
+  searchQuery: "", 
 };
 
 const authSlice = createSlice({
